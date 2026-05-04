@@ -1,9 +1,14 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'auth_service.dart';
 
 class ApiClient {
-  static const String baseUrl = 'http://localhost:3000/api';
+  static String get baseUrl {
+    if (kIsWeb) return 'http://localhost:3000/api';
+    return dotenv.env['API_URL'] ?? 'http://localhost:3000/api';
+  }
 
   static final ApiClient instance = ApiClient._();
   ApiClient._();

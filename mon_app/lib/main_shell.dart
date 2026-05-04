@@ -3,6 +3,7 @@ import 'pages/profile.dart';
 import 'pages/search_last.dart';
 import 'pages/messages.dart';
 import 'pages/matchmaking.dart';
+import 'pages/users.dart';
 
 class MainShell extends StatefulWidget {
   final int initialIndex;
@@ -20,6 +21,7 @@ class _MainShellState extends State<MainShell> {
     SearchLastPage(),
     MessagesPage(),
     MatchmakingPage(),
+    UsersPage(),
   ];
 
   @override
@@ -66,6 +68,11 @@ class _MainShellState extends State<MainShell> {
               icon: Icon(Icons.person_search_outlined),
               activeIcon: Icon(Icons.person_search_rounded),
               label: 'Solo',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.people_outline_rounded),
+              activeIcon: Icon(Icons.people_rounded),
+              label: 'Joueurs',
             ),
           ],
         ),

@@ -80,16 +80,16 @@ class AuthService extends ChangeNotifier {
       _accessToken = body['accessToken'];
       _currentUser = body['user'];
 
-      final cookies = response.headers['set-cookie'];
-      if (cookies != null) {
-        final refreshMatch = RegExp(
-          r'refreshToken=([^;]+)',
-        ).firstMatch(cookies);
-        if (refreshMatch != null) {
-          await _storage.write(
-            key: 'refreshToken',
-            value: refreshMatch.group(1),
-          );
+      final refreshToken = body['refreshToken'] as String?;
+      if (refreshToken != null) {
+        await _storage.write(key: 'refreshToken', value: refreshToken);
+      } else {
+        final cookies = response.headers['set-cookie'];
+        if (cookies != null) {
+          final match = RegExp(r'refreshToken=([^;]+)').firstMatch(cookies);
+          if (match != null) {
+            await _storage.write(key: 'refreshToken', value: match.group(1));
+          }
         }
       }
 
@@ -107,7 +107,11 @@ class AuthService extends ChangeNotifier {
     try {
       final response = await _http.post(
         Uri.parse('${ApiClient.baseUrl}/auth/refresh'),
-        headers: {'Cookie': 'refreshToken=$storedRefresh'},
+        headers: <String, String>{
+          'Content-Type': 'application/json',
+          if (!kIsWeb) 'Cookie': 'refreshToken=$storedRefresh',
+        },
+        body: jsonEncode({'refreshToken': storedRefresh}),
       );
 
       if (response.statusCode >= 400) {
@@ -118,17 +122,9 @@ class AuthService extends ChangeNotifier {
       final body = jsonDecode(response.body);
       _accessToken = body['accessToken'];
 
-      final cookies = response.headers['set-cookie'];
-      if (cookies != null) {
-        final refreshMatch = RegExp(
-          r'refreshToken=([^;]+)',
-        ).firstMatch(cookies);
-        if (refreshMatch != null) {
-          await _storage.write(
-            key: 'refreshToken',
-            value: refreshMatch.group(1),
-          );
-        }
+      final newRefresh = body['refreshToken'] as String?;
+      if (newRefresh != null) {
+        await _storage.write(key: 'refreshToken', value: newRefresh);
       }
 
       if (_currentUser == null) {
@@ -153,7 +149,8 @@ class AuthService extends ChangeNotifier {
           Uri.parse('${ApiClient.baseUrl}/auth/logout'),
           headers: {
             'Authorization': 'Bearer $_accessToken',
-            if (storedRefresh != null) 'Cookie': 'refreshToken=$storedRefresh',
+            if (!kIsWeb && storedRefresh != null)
+              'Cookie': 'refreshToken=$storedRefresh',
           },
         );
       }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'pages/home.dart';
 import 'pages/login.dart';
 import 'pages/register.dart';
@@ -7,8 +8,9 @@ import 'pages/invitations_sent.dart';
 import 'main_shell.dart';
 import 'services/auth_service.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: '.env');
   runApp(const MyApp());
 }
 

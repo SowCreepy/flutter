@@ -89,83 +89,90 @@ class _MatchmakingPageState extends State<MatchmakingPage>
         ),
         centerTitle: true,
       ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32),
-          child: Column(
-            children: [
-              const SizedBox(height: 40),
-
-              AnimatedBuilder(
-                animation: _pulseAnimation,
-                builder: (context, child) =>
-                    Transform.scale(scale: _pulseAnimation.value, child: child),
-                child: Container(
-                  width: 120,
-                  height: 120,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF7C6FFF).withOpacity(0.15),
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: const Color(0xFF7C6FFF).withOpacity(0.5),
-                      width: 2,
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: Column(
+          children: [
+            Expanded(
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    AnimatedBuilder(
+                      animation: _pulseAnimation,
+                      builder: (context, child) => Transform.scale(
+                        scale: _pulseAnimation.value,
+                        child: child,
+                      ),
+                      child: Container(
+                        width: 120,
+                        height: 120,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF7C6FFF).withOpacity(0.15),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: const Color(0xFF7C6FFF).withOpacity(0.5),
+                            width: 2,
+                          ),
+                        ),
+                        child: const Icon(
+                          Icons.person_search_rounded,
+                          size: 56,
+                          color: Color(0xFF7C6FFF),
+                        ),
+                      ),
                     ),
-                  ),
-                  child: const Icon(
-                    Icons.person_search_rounded,
-                    size: 56,
-                    color: Color(0xFF7C6FFF),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 32),
-              const Text(
-                'En attente...',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Vous êtes visible pour les groupes\nqui cherchent un dernier joueur.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.white.withOpacity(0.4),
-                  fontSize: 15,
-                  height: 1.6,
-                ),
-              ),
-              const SizedBox(height: 40),
-              if (_store.received.isNotEmpty) ...[
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'INVITATIONS (${_store.received.length})',
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.4),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.8,
+                    const SizedBox(height: 32),
+                    const Text(
+                      'En attente...',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Vous êtes visible pour les groupes\nqui cherchent un dernier joueur.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.4),
+                        fontSize: 15,
+                        height: 1.6,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            if (_store.received.isNotEmpty) ...[
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'INVITATIONS (${_store.received.length})',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.4),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.8,
                   ),
                 ),
-                const SizedBox(height: 12),
-                ...List.generate(_store.received.length, (i) {
-                  final inv = _store.received[i];
-                  return InvitationCard(
-                    username: inv.player.username,
-                    rank: inv.player.rank,
-                    subtitle: '${inv.player.rank}  ·  Niv. ${inv.player.level}',
-                    onAccept: () => _acceptInvitation(inv),
-                    onReject: () => _rejectInvitation(inv),
-                  );
-                }),
-              ],
+              ),
+              const SizedBox(height: 12),
+              ...List.generate(_store.received.length, (i) {
+                final inv = _store.received[i];
+                return InvitationCard(
+                  username: inv.player.username,
+                  rank: inv.player.rank,
+                  subtitle: '${inv.player.rank}  ·  Niv. ${inv.player.level}',
+                  onAccept: () => _acceptInvitation(inv),
+                  onReject: () => _rejectInvitation(inv),
+                );
+              }),
               const SizedBox(height: 32),
             ],
-          ),
+          ],
         ),
       ),
     );
