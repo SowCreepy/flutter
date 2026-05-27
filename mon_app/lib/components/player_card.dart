@@ -24,7 +24,11 @@ class PlayerCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              PlayerAvatar(username: player.username, size: 72),
+              PlayerAvatar(
+                username: player.username,
+                avatarUrl: player.avatarUrl,
+                size: 72,
+              ),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(

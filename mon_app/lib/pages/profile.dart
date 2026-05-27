@@ -184,6 +184,7 @@ class _ProfilePageState extends State<ProfilePage> {
               children: [
                 PlayerAvatar(
                   username: _currentPlayer!.username,
+                  avatarUrl: _currentPlayer!.avatarUrl,
                   size: 80,
                   borderColor: const Color(0xFF7C6FFF).withOpacity(0.5),
                 ),

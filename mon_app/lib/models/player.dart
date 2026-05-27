@@ -43,6 +43,7 @@ class Player {
   final int level;
   final int elo;
   final String? steamUrl;
+  final String? avatarUrl;
   final bool isAvailable;
   final List<MatchResult> recentMatches;
 
@@ -53,6 +54,7 @@ class Player {
     required this.level,
     this.elo = 0,
     this.steamUrl,
+    this.avatarUrl,
     this.isAvailable = false,
     this.recentMatches = const [],
   });
@@ -65,6 +67,7 @@ class Player {
       level: json['level'] as int? ?? 1,
       elo: json['elo'] as int? ?? 0,
       steamUrl: json['steamUrl'] as String?,
+      avatarUrl: json['avatarUrl'] as String?,
       isAvailable: json['isAvailable'] as bool? ?? false,
       recentMatches:
           (json['recentMatches'] as List<dynamic>?)

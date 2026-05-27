@@ -1,13 +1,20 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import 'auth_service.dart';
 
 class ApiClient {
   static String get baseUrl {
     if (kIsWeb) return 'http://localhost:3000/api';
     return dotenv.env['API_URL'] ?? 'http://localhost:3000/api';
+  }
+
+  static String get staticUrl {
+    final url = baseUrl;
+    return url.endsWith('/api') ? url.substring(0, url.length - 4) : url;
   }
 
   static final ApiClient instance = ApiClient._();
@@ -69,6 +76,60 @@ class ApiClient {
         body: body != null ? jsonEncode(body) : null,
       ),
     );
+    return _decode(response);
+  }
+
+  Future<Map<String, dynamic>> uploadAvatar(
+    Uint8List bytes,
+    String filename,
+  ) async {
+    final uri = Uri.parse('$baseUrl/players/me/avatar');
+    final request = http.MultipartRequest('POST', uri)
+      ..headers.addAll(_authHeaders)
+      ..files.add(
+        http.MultipartFile.fromBytes(
+          'file',
+          bytes,
+          filename: filename,
+          contentType: MediaType(
+            'image',
+            filename.toLowerCase().endsWith('.png') ? 'png' : 'jpeg',
+          ),
+        ),
+      );
+
+    final streamed = await request.send();
+    final response = await http.Response.fromStream(streamed);
+
+    if (response.statusCode == 401) {
+      final refreshed = await AuthService.instance.refreshToken();
+      if (refreshed) {
+        final retryRequest = http.MultipartRequest('POST', uri)
+          ..headers.addAll(_authHeaders)
+          ..files.add(
+            http.MultipartFile.fromBytes('file', bytes, filename: filename),
+          );
+        final retryStreamed = await retryRequest.send();
+        final retryResponse = await http.Response.fromStream(retryStreamed);
+        if (retryResponse.statusCode >= 400) {
+          final body = jsonDecode(retryResponse.body);
+          throw ApiException(
+            statusCode: retryResponse.statusCode,
+            message: body['error'] ?? 'Upload failed',
+          );
+        }
+        return _decode(retryResponse);
+      }
+    }
+
+    if (response.statusCode >= 400) {
+      final body = jsonDecode(response.body);
+      throw ApiException(
+        statusCode: response.statusCode,
+        message: body['error'] ?? 'Upload failed',
+      );
+    }
+
     return _decode(response);
   }
 

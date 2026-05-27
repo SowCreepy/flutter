@@ -1,7 +1,10 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../services/api_client.dart';
 import '../models/player.dart';
+import '../components/player_avatar.dart';
+import '../utils/image_picker_helper.dart';
 
 String eloToRank(int elo) {
   if (elo >= 25000) return 'Global Elite';
@@ -46,7 +49,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
   late TextEditingController _eloController;
   late TextEditingController _steamUrlController;
   bool _saving = false;
+  bool _uploadingAvatar = false;
   String? _error;
+  String? _avatarUrl;
+  Uint8List? _localAvatarBytes;
 
   @override
   void initState() {
@@ -58,6 +64,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     _steamUrlController = TextEditingController(
       text: widget.player.steamUrl ?? '',
     );
+    _avatarUrl = widget.player.avatarUrl;
   }
 
   @override
@@ -69,6 +76,43 @@ class _EditProfilePageState extends State<EditProfilePage> {
   }
 
   int get _elo => int.tryParse(_eloController.text) ?? 0;
+
+  Future<void> _pickAvatar() async {
+    final picked = await pickImageFromGallery();
+    if (picked == null) return;
+    if (!mounted) return;
+
+    setState(() {
+      _uploadingAvatar = true;
+      _localAvatarBytes = picked.bytes;
+    });
+
+    await Future<void>.delayed(Duration.zero);
+
+    try {
+      await ApiClient.instance.uploadAvatar(picked.bytes, picked.name);
+      final data = await ApiClient.instance.get('/players/me');
+      final url = data['avatarUrl'] as String?;
+      if (mounted) setState(() => _avatarUrl = url);
+    } catch (e, st) {
+      debugPrint('Avatar upload failed: $e\n$st');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              e is ApiException
+                  ? 'Upload échoué: ${e.message}'
+                  : 'Erreur lors du téléchargement de l\'image: $e',
+            ),
+            backgroundColor: const Color(0xFFFF5252),
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _uploadingAvatar = false);
+    }
+  }
 
   Future<void> _save() async {
     setState(() {
@@ -125,7 +169,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () =>
+              Navigator.pop(context, _avatarUrl != widget.player.avatarUrl),
         ),
         title: const Text(
           'Modifier le profil',
@@ -139,6 +184,65 @@ class _EditProfilePageState extends State<EditProfilePage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 24),
+
+            Center(
+              child: MouseRegion(
+                cursor: _uploadingAvatar
+                    ? SystemMouseCursors.basic
+                    : SystemMouseCursors.click,
+                child: InkWell(
+                  onTap: _uploadingAvatar ? null : _pickAvatar,
+                  borderRadius: BorderRadius.circular(48),
+                  child: Stack(
+                    children: [
+                      _localAvatarBytes != null
+                          ? Container(
+                              width: 96,
+                              height: 96,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                image: DecorationImage(
+                                  image: MemoryImage(_localAvatarBytes!),
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            )
+                          : PlayerAvatar(
+                              username: widget.player.username,
+                              avatarUrl: _avatarUrl,
+                              size: 96,
+                            ),
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: Container(
+                          width: 28,
+                          height: 28,
+                          decoration: const BoxDecoration(
+                            color: Color(0xFF7C6FFF),
+                            shape: BoxShape.circle,
+                          ),
+                          child: _uploadingAvatar
+                              ? const Padding(
+                                  padding: EdgeInsets.all(6),
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Icon(
+                                  Icons.camera_alt,
+                                  color: Colors.white,
+                                  size: 16,
+                                ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 28),
 
             if (_error != null)
               Container(
