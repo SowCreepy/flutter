@@ -28,10 +28,11 @@ class _InvitationsSentPageState extends State<InvitationsSentPage> {
         Navigator.pushNamed(
           context,
           '/chat',
-          arguments: <String, String>{
+          arguments: <String, String?>{
             'chatId': chatId,
             'username': by?['username']?.toString() ?? 'Joueur',
             'rank': by?['rank']?.toString() ?? '',
+            'avatarUrl': by?['avatarUrl']?.toString(),
           },
         );
       }
@@ -54,10 +55,11 @@ class _InvitationsSentPageState extends State<InvitationsSentPage> {
     Navigator.pushNamed(
       context,
       '/chat',
-      arguments: <String, String>{
+      arguments: <String, String?>{
         'chatId': inv.chatId!,
         'username': inv.player.username,
         'rank': inv.player.rank,
+        'avatarUrl': inv.player.avatarUrl,
       },
     );
   }
@@ -122,6 +124,7 @@ class _InvitationsSentPageState extends State<InvitationsSentPage> {
                 return InvitationCard(
                   username: inv.player.username,
                   rank: inv.player.rank,
+                  avatarUrl: inv.player.avatarUrl,
                   subtitle: '${inv.player.rank}  ·  Niv. ${inv.player.level}',
                   status: inv.isAccepted
                       ? InviteCardStatus.accepted

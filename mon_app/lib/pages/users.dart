@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/player.dart';
+import '../components/player_avatar.dart';
 import '../components/rank_badge.dart';
 import '../services/api_client.dart';
 
@@ -136,19 +137,10 @@ class _UsersPageState extends State<UsersPage> {
                 ),
                 child: Row(
                   children: [
-                    CircleAvatar(
-                      radius: 22,
-                      backgroundColor: const Color(0xFF7C6FFF).withOpacity(0.2),
-                      child: Text(
-                        player.username.isNotEmpty
-                            ? player.username[0].toUpperCase()
-                            : '?',
-                        style: const TextStyle(
-                          color: Color(0xFF7C6FFF),
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
+                    PlayerAvatar(
+                      username: player.username,
+                      avatarUrl: player.avatarUrl,
+                      size: 44,
                     ),
                     const SizedBox(width: 14),
                     Expanded(

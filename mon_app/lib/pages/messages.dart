@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../components/player_avatar.dart';
 import '../services/api_client.dart';
 import '../services/auth_service.dart';
 
@@ -47,6 +48,15 @@ class _MessagesPageState extends State<MessagesPage> {
       if (p['id'] != myId) return p['rank'] ?? '';
     }
     return '';
+  }
+
+  String? _getOtherAvatarUrl(Map<String, dynamic> chat) {
+    final myId = AuthService.instance.userId;
+    final participants = chat['participants'] as List<dynamic>;
+    for (final p in participants) {
+      if (p['id'] != myId) return p['avatarUrl'] as String?;
+    }
+    return null;
   }
 
   String? _getLastMessage(Map<String, dynamic> chat) {
@@ -136,6 +146,7 @@ class _MessagesPageState extends State<MessagesPage> {
                   final chat = _chats[index];
                   final username = _getOtherUsername(chat);
                   final rank = _getOtherRank(chat);
+                  final avatarUrl = _getOtherAvatarUrl(chat);
                   final lastMsg = _getLastMessage(chat);
                   final time = _formatTime(chat);
 
@@ -144,25 +155,10 @@ class _MessagesPageState extends State<MessagesPage> {
                       horizontal: 20,
                       vertical: 6,
                     ),
-                    leading: Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF7C6FFF).withOpacity(0.2),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Center(
-                        child: Text(
-                          username.length >= 2
-                              ? username.substring(0, 2).toUpperCase()
-                              : username.toUpperCase(),
-                          style: const TextStyle(
-                            color: Color(0xFF7C6FFF),
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
+                    leading: PlayerAvatar(
+                      username: username,
+                      avatarUrl: avatarUrl,
+                      size: 48,
                     ),
                     title: Text(
                       username,
@@ -192,10 +188,11 @@ class _MessagesPageState extends State<MessagesPage> {
                       Navigator.pushNamed(
                         context,
                         '/chat',
-                        arguments: <String, String>{
+                        arguments: <String, String?>{
                           'chatId': chat['id'] as String,
                           'username': username,
                           'rank': rank,
+                          'avatarUrl': avatarUrl,
                         },
                       );
                     },

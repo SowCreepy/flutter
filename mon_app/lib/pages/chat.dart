@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../components/player_avatar.dart';
 import '../services/api_client.dart';
 import '../services/auth_service.dart';
 import '../services/socket_service.dart';
@@ -109,6 +110,7 @@ class _ChatPageState extends State<ChatPage> {
         ModalRoute.of(context)?.settings.arguments as Map<dynamic, dynamic>?;
     final username = args?['username']?.toString() ?? 'Joueur';
     final rank = args?['rank']?.toString() ?? '';
+    final avatarUrl = args?['avatarUrl']?.toString();
 
     return Scaffold(
       backgroundColor: const Color(0xFF0F0F1A),
@@ -121,26 +123,7 @@ class _ChatPageState extends State<ChatPage> {
         ),
         title: Row(
           children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: const Color(0xFF7C6FFF).withOpacity(0.2),
-                shape: BoxShape.circle,
-              ),
-              child: Center(
-                child: Text(
-                  username.length >= 2
-                      ? username.substring(0, 2).toUpperCase()
-                      : username.toUpperCase(),
-                  style: const TextStyle(
-                    color: Color(0xFF7C6FFF),
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
+            PlayerAvatar(username: username, avatarUrl: avatarUrl, size: 36),
             const SizedBox(width: 12),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,

@@ -6,6 +6,7 @@ enum InviteCardStatus { pending, accepted }
 class InvitationCard extends StatelessWidget {
   final String username;
   final String rank;
+  final String? avatarUrl;
   final String? subtitle;
   final InviteCardStatus status;
   final VoidCallback? onAccept;
@@ -15,6 +16,7 @@ class InvitationCard extends StatelessWidget {
     super.key,
     required this.username,
     required this.rank,
+    this.avatarUrl,
     this.subtitle,
     this.status = InviteCardStatus.pending,
     this.onAccept,
@@ -33,7 +35,7 @@ class InvitationCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          PlayerAvatar(username: username, size: 44),
+          PlayerAvatar(username: username, avatarUrl: avatarUrl, size: 44),
           const SizedBox(width: 12),
           Expanded(
             child: Column(

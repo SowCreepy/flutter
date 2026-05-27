@@ -60,10 +60,11 @@ class _MatchmakingPageState extends State<MatchmakingPage>
       Navigator.pushNamed(
         context,
         '/chat',
-        arguments: <String, String>{
+        arguments: <String, String?>{
           'chatId': chatId,
           'username': inv.player.username,
           'rank': inv.player.rank,
+          'avatarUrl': inv.player.avatarUrl,
         },
       );
     }
@@ -165,6 +166,7 @@ class _MatchmakingPageState extends State<MatchmakingPage>
                 return InvitationCard(
                   username: inv.player.username,
                   rank: inv.player.rank,
+                  avatarUrl: inv.player.avatarUrl,
                   subtitle: '${inv.player.rank}  ·  Niv. ${inv.player.level}',
                   onAccept: () => _acceptInvitation(inv),
                   onReject: () => _rejectInvitation(inv),
