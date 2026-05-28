@@ -54,10 +54,19 @@ class InvitationStore extends ChangeNotifier {
       final data = await ApiClient.instance.patch(
         '/invitations/$invitationId/accept',
       );
-      final idx = received.indexWhere((i) => i.id == invitationId);
-      if (idx != -1) {
-        received[idx].status = InvitationStatus.accepted;
+      // Retire l'invitation acceptée de la liste des reçues
+      received.removeWhere((i) => i.id == invitationId);
+      // Annule et retire toutes les invitations envoyées en attente
+      final pendingIds = sent
+          .where((i) => i.status == InvitationStatus.pending)
+          .map((i) => i.id)
+          .toList();
+      for (final id in pendingIds) {
+        try {
+          await ApiClient.instance.delete('/invitations/$id');
+        } catch (_) {}
       }
+      sent.removeWhere((i) => i.status == InvitationStatus.pending);
       notifyListeners();
       return data['chatId'] as String?;
     } catch (e) {

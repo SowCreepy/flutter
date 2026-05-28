@@ -18,6 +18,8 @@ class SocketService extends ChangeNotifier {
       StreamController<Map<String, dynamic>>.broadcast();
   final _invitationRejectedController =
       StreamController<Map<String, dynamic>>.broadcast();
+  final _invitationCancelledController =
+      StreamController<Map<String, dynamic>>.broadcast();
   final _chatMessageController =
       StreamController<Map<String, dynamic>>.broadcast();
 
@@ -27,6 +29,8 @@ class SocketService extends ChangeNotifier {
       _invitationAcceptedController.stream;
   Stream<Map<String, dynamic>> get onInvitationRejected =>
       _invitationRejectedController.stream;
+  Stream<Map<String, dynamic>> get onInvitationCancelled =>
+      _invitationCancelledController.stream;
   Stream<Map<String, dynamic>> get onChatMessage =>
       _chatMessageController.stream;
 
@@ -69,6 +73,10 @@ class SocketService extends ChangeNotifier {
       _invitationRejectedController.add(Map<String, dynamic>.from(data));
     });
 
+    _socket!.on('invitation:cancelled', (data) {
+      _invitationCancelledController.add(Map<String, dynamic>.from(data));
+    });
+
     _socket!.on('chat:message', (data) {
       _chatMessageController.add(Map<String, dynamic>.from(data));
     });
@@ -100,6 +108,7 @@ class SocketService extends ChangeNotifier {
     _invitationReceivedController.close();
     _invitationAcceptedController.close();
     _invitationRejectedController.close();
+    _invitationCancelledController.close();
     _chatMessageController.close();
     super.dispose();
   }

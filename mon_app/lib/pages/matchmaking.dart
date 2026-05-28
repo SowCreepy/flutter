@@ -19,6 +19,7 @@ class _MatchmakingPageState extends State<MatchmakingPage>
   late Animation<double> _pulseAnimation;
   final _store = InvitationStore.instance;
   StreamSubscription? _invSub;
+  StreamSubscription? _cancelSub;
 
   @override
   void initState() {
@@ -42,12 +43,21 @@ class _MatchmakingPageState extends State<MatchmakingPage>
         if (mounted) setState(() {});
       });
     });
+
+    _cancelSub = SocketService.instance.onInvitationCancelled.listen((data) {
+      final id = data['invitationId'] as String?;
+      if (id != null) {
+        _store.received.removeWhere((i) => i.id == id);
+        if (mounted) setState(() {});
+      }
+    });
   }
 
   @override
   void dispose() {
     _pulseController.dispose();
     _invSub?.cancel();
+    _cancelSub?.cancel();
     ApiClient.instance.patch('/players/me/availability', {
       'isAvailable': false,
     });

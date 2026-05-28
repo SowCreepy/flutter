@@ -79,6 +79,12 @@ class ApiClient {
     return _decode(response);
   }
 
+  Future<void> delete(String path) async {
+    await _request(
+      () => _http.delete(Uri.parse('$baseUrl$path'), headers: _authHeaders),
+    );
+  }
+
   Future<Map<String, dynamic>> uploadAvatar(
     Uint8List bytes,
     String filename,
