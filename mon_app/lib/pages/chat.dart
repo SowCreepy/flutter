@@ -4,6 +4,7 @@ import '../components/player_avatar.dart';
 import '../services/api_client.dart';
 import '../services/auth_service.dart';
 import '../services/socket_service.dart';
+import 'player_profile_page.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key});
@@ -111,6 +112,7 @@ class _ChatPageState extends State<ChatPage> {
     final username = args?['username']?.toString() ?? 'Joueur';
     final rank = args?['rank']?.toString() ?? '';
     final avatarUrl = args?['avatarUrl']?.toString();
+    final otherId = args?['otherId']?.toString();
 
     return Scaffold(
       backgroundColor: const Color(0xFF0F0F1A),
@@ -121,32 +123,53 @@ class _ChatPageState extends State<ChatPage> {
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Row(
-          children: [
-            PlayerAvatar(username: username, avatarUrl: avatarUrl, size: 36),
-            const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  username,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                if (rank.isNotEmpty)
-                  Text(
-                    rank,
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.4),
-                      fontSize: 11,
+        title: GestureDetector(
+          onTap: otherId == null
+              ? null
+              : () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => PlayerProfilePage(
+                      playerId: otherId,
+                      previewUsername: username,
                     ),
                   ),
+                ),
+          child: Row(
+            children: [
+              PlayerAvatar(username: username, avatarUrl: avatarUrl, size: 36),
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    username,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  if (rank.isNotEmpty)
+                    Text(
+                      rank,
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.4),
+                        fontSize: 11,
+                      ),
+                    ),
+                ],
+              ),
+              if (otherId != null) ...[
+                const SizedBox(width: 6),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  color: Colors.white.withOpacity(0.3),
+                  size: 18,
+                ),
               ],
-            ),
-          ],
+            ],
+          ),
         ),
       ),
       body: Column(

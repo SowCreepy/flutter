@@ -5,6 +5,7 @@ import '../components/swipe_overlay.dart';
 import '../components/swipe_action_button.dart';
 import '../services/invitation_store.dart';
 import '../services/api_client.dart';
+import 'player_profile_page.dart';
 
 class SearchLastPage extends StatefulWidget {
   const SearchLastPage({super.key});
@@ -256,6 +257,16 @@ class _SearchLastPageState extends State<SearchLastPage>
                               child: GestureDetector(
                                 onPanUpdate: _onPanUpdate,
                                 onPanEnd: _onPanEnd,
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => PlayerProfilePage(
+                                      playerId: _players[_currentIndex].id,
+                                      previewUsername:
+                                          _players[_currentIndex].username,
+                                    ),
+                                  ),
+                                ),
                                 child: Stack(
                                   children: [
                                     PlayerCard(player: _players[_currentIndex]),

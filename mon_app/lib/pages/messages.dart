@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../components/player_avatar.dart';
 import '../services/api_client.dart';
 import '../services/auth_service.dart';
+import 'player_profile_page.dart';
 
 class MessagesPage extends StatefulWidget {
   const MessagesPage({super.key});
@@ -55,6 +56,15 @@ class _MessagesPageState extends State<MessagesPage> {
     final participants = chat['participants'] as List<dynamic>;
     for (final p in participants) {
       if (p['id'] != myId) return p['avatarUrl'] as String?;
+    }
+    return null;
+  }
+
+  String? _getOtherId(Map<String, dynamic> chat) {
+    final myId = AuthService.instance.userId;
+    final participants = chat['participants'] as List<dynamic>;
+    for (final p in participants) {
+      if (p['id'] != myId) return p['id'] as String?;
     }
     return null;
   }
@@ -149,16 +159,30 @@ class _MessagesPageState extends State<MessagesPage> {
                   final avatarUrl = _getOtherAvatarUrl(chat);
                   final lastMsg = _getLastMessage(chat);
                   final time = _formatTime(chat);
+                  final otherId = _getOtherId(chat);
 
                   return ListTile(
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 20,
                       vertical: 6,
                     ),
-                    leading: PlayerAvatar(
-                      username: username,
-                      avatarUrl: avatarUrl,
-                      size: 48,
+                    leading: GestureDetector(
+                      onTap: otherId == null
+                          ? null
+                          : () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => PlayerProfilePage(
+                                  playerId: otherId,
+                                  previewUsername: username,
+                                ),
+                              ),
+                            ),
+                      child: PlayerAvatar(
+                        username: username,
+                        avatarUrl: avatarUrl,
+                        size: 48,
+                      ),
                     ),
                     title: Text(
                       username,
@@ -193,6 +217,7 @@ class _MessagesPageState extends State<MessagesPage> {
                           'username': username,
                           'rank': rank,
                           'avatarUrl': avatarUrl,
+                          'otherId': otherId,
                         },
                       );
                     },

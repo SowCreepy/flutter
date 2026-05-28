@@ -3,6 +3,7 @@ import '../models/player.dart';
 import '../components/player_avatar.dart';
 import '../components/rank_badge.dart';
 import '../services/api_client.dart';
+import 'player_profile_page.dart';
 
 class UsersPage extends StatefulWidget {
   const UsersPage({super.key});
@@ -122,69 +123,81 @@ class _UsersPageState extends State<UsersPage> {
             separatorBuilder: (_, __) => const SizedBox(height: 8),
             itemBuilder: (context, index) {
               final player = users[index];
-              return Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 14,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1A1A2E),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: const Color(0xFF2A2A3E),
-                    width: 0.5,
+              return InkWell(
+                borderRadius: BorderRadius.circular(14),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => PlayerProfilePage(
+                      playerId: player.id,
+                      previewUsername: player.username,
+                    ),
                   ),
                 ),
-                child: Row(
-                  children: [
-                    PlayerAvatar(
-                      username: player.username,
-                      avatarUrl: player.avatarUrl,
-                      size: 44,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1A1A2E),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: const Color(0xFF2A2A3E),
+                      width: 0.5,
                     ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                  ),
+                  child: Row(
+                    children: [
+                      PlayerAvatar(
+                        username: player.username,
+                        avatarUrl: player.avatarUrl,
+                        size: 44,
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              player.username,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            RankBadge(rank: player.rank, level: player.level),
+                          ],
+                        ),
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Text(
-                            player.username,
+                            '${player.elo} ELO',
                             style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 15,
+                              color: Color(0xFF7C6FFF),
+                              fontSize: 13,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
                           const SizedBox(height: 4),
-                          RankBadge(rank: player.rank, level: player.level),
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: player.isAvailable
+                                  ? const Color(0xFF4CAF50)
+                                  : Colors.white24,
+                            ),
+                          ),
                         ],
                       ),
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          '${player.elo} ELO',
-                          style: const TextStyle(
-                            color: Color(0xFF7C6FFF),
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Container(
-                          width: 8,
-                          height: 8,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: player.isAvailable
-                                ? const Color(0xFF4CAF50)
-                                : Colors.white24,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               );
             },
