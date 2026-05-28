@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../models/player.dart';
 import '../components/match_tile.dart';
 import '../components/player_avatar.dart';
@@ -31,6 +32,18 @@ class _PlayerProfilePageState extends State<PlayerProfilePage> {
   void initState() {
     super.initState();
     _loadPlayer();
+  }
+
+  Future<void> _launchSteamUrl(String url) async {
+    final uri = Uri.parse(url);
+    if (!await canLaunchUrl(uri)) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Impossible d\'ouvrir ce lien')),
+      );
+      return;
+    }
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
   Future<void> _loadPlayer() async {
@@ -264,34 +277,40 @@ class _PlayerProfilePageState extends State<PlayerProfilePage> {
                   // Steam URL
                   if (_player!.steamUrl != null &&
                       _player!.steamUrl!.isNotEmpty) ...[
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1A1A2E),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(
-                            Icons.link,
-                            color: Color(0xFF66C0F4),
-                            size: 20,
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              _player!.steamUrl!,
-                              style: const TextStyle(
-                                color: Color(0xFF66C0F4),
-                                fontSize: 13,
-                              ),
-                              overflow: TextOverflow.ellipsis,
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => _launchSteamUrl(_player!.steamUrl!),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1A1A2E),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.open_in_new_rounded,
+                              color: Color(0xFF66C0F4),
+                              size: 20,
                             ),
-                          ),
-                        ],
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                _player!.steamUrl!,
+                                style: const TextStyle(
+                                  color: Color(0xFF66C0F4),
+                                  fontSize: 13,
+                                  decoration: TextDecoration.underline,
+                                  decorationColor: Color(0xFF66C0F4),
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                     const SizedBox(height: 16),
