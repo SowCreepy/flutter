@@ -123,8 +123,19 @@ class _SearchLastPageState extends State<SearchLastPage>
     if (_players.isEmpty) return;
     setState(() {
       _dragX = 0;
-      _currentIndex = (_currentIndex + 1) % _players.length;
+      _players.removeAt(_currentIndex);
+      if (_currentIndex >= _players.length && _players.isNotEmpty) {
+        _currentIndex = 0;
+      }
     });
+  }
+
+  Future<void> _reload() async {
+    setState(() {
+      _loading = true;
+      _currentIndex = 0;
+    });
+    await _loadAvailablePlayers();
   }
 
   @override
@@ -153,6 +164,11 @@ class _SearchLastPageState extends State<SearchLastPage>
         ),
         centerTitle: true,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh_rounded, color: Colors.white54),
+            tooltip: 'Recharger la liste',
+            onPressed: _reload,
+          ),
           Stack(
             alignment: Alignment.topRight,
             children: [
@@ -216,6 +232,22 @@ class _SearchLastPageState extends State<SearchLastPage>
                       fontSize: 13,
                     ),
                   ),
+                  const SizedBox(height: 24),
+                  TextButton.icon(
+                    onPressed: _reload,
+                    icon: const Icon(
+                      Icons.refresh_rounded,
+                      color: Color(0xFF7C6FFF),
+                      size: 18,
+                    ),
+                    label: const Text(
+                      'Recharger',
+                      style: TextStyle(
+                        color: Color(0xFF7C6FFF),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
                 ],
               ),
             )
@@ -237,8 +269,7 @@ class _SearchLastPageState extends State<SearchLastPage>
                       child: Stack(
                         alignment: Alignment.center,
                         children: [
-                          if ((_currentIndex + 1) % _players.length !=
-                              _currentIndex)
+                          if (_players.length > 1)
                             Opacity(
                               opacity: 0.4,
                               child: Transform.scale(
