@@ -1,9 +1,13 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'pages/profile.dart';
 import 'pages/search_last.dart';
 import 'pages/messages.dart';
 import 'pages/matchmaking.dart';
 import 'pages/users.dart';
+import 'services/auth_service.dart';
+import 'services/notification_service.dart';
+import 'services/socket_service.dart';
 
 class MainShell extends StatefulWidget {
   final int initialIndex;
@@ -15,6 +19,8 @@ class MainShell extends StatefulWidget {
 
 class _MainShellState extends State<MainShell> {
   late int _currentIndex;
+  StreamSubscription? _invSub;
+  StreamSubscription? _msgSub;
 
   final List<Widget> _pages = const [
     ProfilePage(),
@@ -28,6 +34,40 @@ class _MainShellState extends State<MainShell> {
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
+    _subscribeToNotifications();
+  }
+
+  void _subscribeToNotifications() {
+    _invSub = SocketService.instance.onInvitationReceived.listen((data) {
+      final sender = data['sender'] as Map<String, dynamic>?;
+      final username =
+          sender?['username']?.toString() ??
+          data['username']?.toString() ??
+          'Un joueur';
+      NotificationService.instance.showInvitation(username);
+    });
+
+    _msgSub = SocketService.instance.onChatMessage.listen((data) {
+      final msg = data['message'] as Map<String, dynamic>?;
+      final senderId =
+          msg?['senderId']?.toString() ?? data['senderId']?.toString();
+      if (senderId == AuthService.instance.userId) return;
+      final senderName =
+          msg?['senderUsername']?.toString() ??
+          msg?['senderName']?.toString() ??
+          'Nouveau message';
+      final content =
+          msg?['content']?.toString() ?? data['content']?.toString() ?? '';
+      if (content.isEmpty) return;
+      NotificationService.instance.showMessage(senderName, content);
+    });
+  }
+
+  @override
+  void dispose() {
+    _invSub?.cancel();
+    _msgSub?.cancel();
+    super.dispose();
   }
 
   @override

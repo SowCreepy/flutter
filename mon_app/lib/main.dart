@@ -7,10 +7,12 @@ import 'pages/chat.dart';
 import 'pages/invitations_sent.dart';
 import 'main_shell.dart';
 import 'services/auth_service.dart';
+import 'services/notification_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: '.env');
+  await NotificationService.instance.init();
   runApp(const MyApp());
 }
 
