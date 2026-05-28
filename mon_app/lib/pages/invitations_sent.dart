@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../services/invitation_store.dart';
-import '../services/socket_service.dart';
 import '../models/sent_invitation.dart';
 import '../components/invitation_card.dart';
 
@@ -15,33 +14,21 @@ class InvitationsSentPage extends StatefulWidget {
 class _InvitationsSentPageState extends State<InvitationsSentPage> {
   final _store = InvitationStore.instance;
   bool _loading = true;
-  StreamSubscription? _acceptSub;
 
   @override
   void initState() {
     super.initState();
     _loadInvitations();
-    _acceptSub = SocketService.instance.onInvitationAccepted.listen((data) {
-      final chatId = data['chatId'] as String?;
-      final by = data['by'] as Map<String, dynamic>?;
-      if (chatId != null && mounted) {
-        Navigator.pushNamed(
-          context,
-          '/chat',
-          arguments: <String, String?>{
-            'chatId': chatId,
-            'username': by?['username']?.toString() ?? 'Joueur',
-            'rank': by?['rank']?.toString() ?? '',
-            'avatarUrl': by?['avatarUrl']?.toString(),
-          },
-        );
-      }
-    });
+    InvitationStore.instance.addListener(_onStoreChanged);
+  }
+
+  void _onStoreChanged() {
+    if (mounted) setState(() {});
   }
 
   @override
   void dispose() {
-    _acceptSub?.cancel();
+    InvitationStore.instance.removeListener(_onStoreChanged);
     super.dispose();
   }
 

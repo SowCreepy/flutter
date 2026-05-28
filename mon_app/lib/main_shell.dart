@@ -6,6 +6,7 @@ import 'pages/messages.dart';
 import 'pages/matchmaking.dart';
 import 'pages/users.dart';
 import 'services/auth_service.dart';
+import 'services/invitation_store.dart';
 import 'services/notification_service.dart';
 import 'services/socket_service.dart';
 
@@ -21,6 +22,7 @@ class _MainShellState extends State<MainShell> {
   late int _currentIndex;
   StreamSubscription? _invSub;
   StreamSubscription? _msgSub;
+  StreamSubscription? _acceptedSub;
 
   final List<Widget> _pages = const [
     ProfilePage(),
@@ -39,12 +41,51 @@ class _MainShellState extends State<MainShell> {
 
   void _subscribeToNotifications() {
     _invSub = SocketService.instance.onInvitationReceived.listen((data) {
-      final sender = data['sender'] as Map<String, dynamic>?;
-      final username =
-          sender?['username']?.toString() ??
-          data['username']?.toString() ??
-          'Un joueur';
+      final invitation = data['invitation'] as Map<String, dynamic>?;
+      final sender = invitation?['sender'] as Map<String, dynamic>?;
+      final username = sender?['username']?.toString() ?? 'Un joueur';
       NotificationService.instance.showInvitation(username);
+    });
+
+    _acceptedSub = SocketService.instance.onInvitationAccepted.listen((data) {
+      final chatId = data['chatId'] as String?;
+      final invitationId = data['invitationId'] as String?;
+      final by = data['by'] as Map<String, dynamic>?;
+      final username = by?['username']?.toString() ?? 'Un joueur';
+      final rank = by?['rank']?.toString() ?? '';
+      final avatarUrl = by?['avatarUrl']?.toString();
+
+      if (invitationId != null && chatId != null) {
+        InvitationStore.instance.markAccepted(invitationId, chatId);
+      }
+
+      if (chatId != null && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('$username a accepté ton invitation !'),
+            backgroundColor: const Color(0xFF4CAF50),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            margin: const EdgeInsets.all(16),
+            duration: const Duration(seconds: 8),
+            action: SnackBarAction(
+              label: 'Ouvrir le chat',
+              textColor: Colors.white,
+              onPressed: () => Navigator.of(context).pushNamed(
+                '/chat',
+                arguments: <String, String?>{
+                  'chatId': chatId,
+                  'username': username,
+                  'rank': rank,
+                  'avatarUrl': avatarUrl,
+                },
+              ),
+            ),
+          ),
+        );
+      }
     });
 
     _msgSub = SocketService.instance.onChatMessage.listen((data) {
@@ -67,6 +108,7 @@ class _MainShellState extends State<MainShell> {
   void dispose() {
     _invSub?.cancel();
     _msgSub?.cancel();
+    _acceptedSub?.cancel();
     super.dispose();
   }
 

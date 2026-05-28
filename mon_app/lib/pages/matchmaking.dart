@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../components/invitation_card.dart';
+import '../models/sent_invitation.dart';
 import '../services/invitation_store.dart';
 import '../services/socket_service.dart';
 import '../services/api_client.dart';
-import '../models/sent_invitation.dart';
 
 class MatchmakingPage extends StatefulWidget {
   const MatchmakingPage({super.key});
@@ -39,6 +39,16 @@ class _MatchmakingPageState extends State<MatchmakingPage>
     });
 
     _invSub = SocketService.instance.onInvitationReceived.listen((data) {
+      final invData = data['invitation'] as Map<String, dynamic>?;
+      if (invData != null) {
+        try {
+          final inv = SentInvitation.fromJsonReceived(invData);
+          _store.addReceived(inv);
+          if (mounted) setState(() {});
+          return;
+        } catch (_) {}
+      }
+      // Fallback: refetch complet
       _store.fetchReceived().then((_) {
         if (mounted) setState(() {});
       });

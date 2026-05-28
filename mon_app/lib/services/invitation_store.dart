@@ -90,6 +90,22 @@ class InvitationStore extends ChangeNotifier {
   int get pendingCount =>
       sent.where((i) => i.status == InvitationStatus.pending).length;
 
+  void addReceived(SentInvitation inv) {
+    if (!received.any((i) => i.id == inv.id)) {
+      received.add(inv);
+      notifyListeners();
+    }
+  }
+
+  void markAccepted(String invitationId, String chatId) {
+    final idx = sent.indexWhere((i) => i.id == invitationId);
+    if (idx != -1) {
+      sent[idx].status = InvitationStatus.accepted;
+      sent[idx].chatId = chatId;
+      notifyListeners();
+    }
+  }
+
   void clear() {
     sent.clear();
     received.clear();

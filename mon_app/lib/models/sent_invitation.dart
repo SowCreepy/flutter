@@ -6,7 +6,7 @@ class SentInvitation {
   final String id;
   final Player player;
   InvitationStatus status;
-  final String? chatId;
+  String? chatId;
   final DateTime createdAt;
 
   SentInvitation({
@@ -19,14 +19,26 @@ class SentInvitation {
 
   bool get isAccepted => status == InvitationStatus.accepted;
 
+  /// Pour les invitations envoyées (contient le champ `receiver`)
   factory SentInvitation.fromJson(Map<String, dynamic> json) {
     final playerData = json['receiver'] ?? json['sender'] ?? {};
     return SentInvitation(
       id: json['id'] as String,
       player: Player.fromJson(playerData),
-      status: _parseStatus(json['status'] as String),
+      status: _parseStatus(json['status'] as String? ?? 'PENDING'),
       chatId: json['chatId'] as String?,
-      createdAt: DateTime.parse(json['createdAt']),
+      createdAt: DateTime.parse(json['createdAt'] as String),
+    );
+  }
+
+  /// Pour les invitations reçues (contient le champ `sender`)
+  factory SentInvitation.fromJsonReceived(Map<String, dynamic> json) {
+    return SentInvitation(
+      id: json['id'] as String,
+      player: Player.fromJson(json['sender'] as Map<String, dynamic>),
+      status: _parseStatus(json['status'] as String? ?? 'PENDING'),
+      chatId: json['chatId'] as String?,
+      createdAt: DateTime.parse(json['createdAt'] as String),
     );
   }
 
