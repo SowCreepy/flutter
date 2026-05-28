@@ -21,6 +21,10 @@ class _MessagesPageState extends State<MessagesPage> {
     _loadChats();
   }
 
+  Future<void> _deleteChat(String chatId) async {
+    await ApiClient.instance.delete('/chats/$chatId');
+  }
+
   Future<void> _loadChats() async {
     try {
       final data = await ApiClient.instance.getList('/chats');
@@ -161,66 +165,133 @@ class _MessagesPageState extends State<MessagesPage> {
                   final time = _formatTime(chat);
                   final otherId = _getOtherId(chat);
 
-                  return ListTile(
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 6,
+                  return Dismissible(
+                    key: Key(chat['id'] as String),
+                    direction: DismissDirection.endToStart,
+                    background: Container(
+                      color: Colors.red.shade700,
+                      alignment: Alignment.centerRight,
+                      padding: const EdgeInsets.only(right: 24),
+                      child: const Icon(
+                        Icons.delete_outline_rounded,
+                        color: Colors.white,
+                        size: 26,
+                      ),
                     ),
-                    leading: GestureDetector(
-                      onTap: otherId == null
-                          ? null
-                          : () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => PlayerProfilePage(
-                                  playerId: otherId,
-                                  previewUsername: username,
+                    confirmDismiss: (direction) async {
+                      final confirmed = await showDialog<bool>(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          backgroundColor: const Color(0xFF1A1A2E),
+                          title: const Text(
+                            'Supprimer la conversation',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                          content: Text(
+                            'Supprimer la conversation avec $username ?',
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.7),
+                            ),
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(ctx, false),
+                              child: Text(
+                                'Annuler',
+                                style: TextStyle(
+                                  color: Colors.white.withOpacity(0.6),
                                 ),
                               ),
                             ),
-                      child: PlayerAvatar(
-                        username: username,
-                        avatarUrl: avatarUrl,
-                        size: 48,
-                      ),
-                    ),
-                    title: Text(
-                      username,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 15,
-                      ),
-                    ),
-                    subtitle: Text(
-                      lastMsg ?? 'Nouvelle conversation',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.4),
-                        fontSize: 13,
-                      ),
-                    ),
-                    trailing: Text(
-                      time,
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.3),
-                        fontSize: 12,
-                      ),
-                    ),
-                    onTap: () {
-                      Navigator.pushNamed(
-                        context,
-                        '/chat',
-                        arguments: <String, String?>{
-                          'chatId': chat['id'] as String,
-                          'username': username,
-                          'rank': rank,
-                          'avatarUrl': avatarUrl,
-                          'otherId': otherId,
-                        },
+                            TextButton(
+                              onPressed: () => Navigator.pop(ctx, true),
+                              child: const Text(
+                                'Supprimer',
+                                style: TextStyle(color: Colors.red),
+                              ),
+                            ),
+                          ],
+                        ),
                       );
+                      if (confirmed != true) return false;
+                      try {
+                        await _deleteChat(chat['id'] as String);
+                        return true;
+                      } catch (_) {
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Impossible de supprimer la conversation',
+                              ),
+                            ),
+                          );
+                        }
+                        return false;
+                      }
                     },
+                    onDismissed: (_) => setState(() => _chats.removeAt(index)),
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 6,
+                      ),
+                      leading: GestureDetector(
+                        onTap: otherId == null
+                            ? null
+                            : () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => PlayerProfilePage(
+                                    playerId: otherId,
+                                    previewUsername: username,
+                                  ),
+                                ),
+                              ),
+                        child: PlayerAvatar(
+                          username: username,
+                          avatarUrl: avatarUrl,
+                          size: 48,
+                        ),
+                      ),
+                      title: Text(
+                        username,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
+                        ),
+                      ),
+                      subtitle: Text(
+                        lastMsg ?? 'Nouvelle conversation',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.4),
+                          fontSize: 13,
+                        ),
+                      ),
+                      trailing: Text(
+                        time,
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.3),
+                          fontSize: 12,
+                        ),
+                      ),
+                      onTap: () {
+                        Navigator.pushNamed(
+                          context,
+                          '/chat',
+                          arguments: <String, String?>{
+                            'chatId': chat['id'] as String,
+                            'username': username,
+                            'rank': rank,
+                            'avatarUrl': avatarUrl,
+                            'otherId': otherId,
+                          },
+                        );
+                      },
+                    ),
                   );
                 },
               ),
